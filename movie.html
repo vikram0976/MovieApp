@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        #container{
+            display: grid;
+            grid-template-columns: repeat(auto-fill,minmax(270px,1fr));
+            width: 90%;
+            margin: auto;
+            gap: 20px;
+        }
+        #conti > img{
+            /* width: 50%; */
+            display: block;
+            text-align: center;
+            margin: auto;
+        }
+        #container div{
+            box-shadow: 10px 10px 5px gray;
+            padding: 10px 12px ;
+            border-radius: 20px;
+        }
+        #container div img{
+            width: 100%;
+            max-height: 400px;
+        }
+        .top{
+            margin-left: 20px;
+            /* border: 2px solid; */
+            border-radius: 20px;
+            background: green;
+            padding: 10px;
+            color: white;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    
+
+  
+    <form id="form">
+        
+        <input type="text" name="search" id="search" placeholder="Search movie">
+        <input type="submit" value="search" id="submit">
+    </form>
+    <select name="year" id="year">
+        <option value="">sort By year</option>
+        <option value="2000">After 2000</option>
+        <option value="2005">After 2005</option>
+        <option value="2010">After 2010</option>
+        <option value="2015">After 2015</option>
+    </select>
+
+   
+    <div id="container">
+
+    </div>
+    <div id="conti">
+
+    </div>
+
+</body>
+<script>
+let lastData=[];
+async function getMovie(value){
+    let nameofMovie=value;
+    // let moive=fetch(`https://www.omdbapi.com/?s=${nameofMovie}&apikey=a820837c`)
+
+    let moive=fetch(`https://www.omdbapi.com/?s=${nameofMovie}&apikey=c44bdbe9`)
+    try{
+        let json=await moive;
+        let data=await json.json();
+        
+        if(data.Search){
+            // console.log(data.Search)
+            document.getElementById('conti').innerHTML='';
+            for(let key of data.Search){
+                // console.log(key)
+                let obj=fetch(`https://www.omdbapi.com/?i=${key.imdbID}&plot=full&apikey=a820837c`)
+                obj.then(function(res){
+                    res.json().then(function(data){
+                            lastData.push(data);
+                            // console.log(data)
+                            console.log(lastData)
+                            display(lastData)
+                    })
+                })
+            }
+            lastData=[]; 
+        }
+        else{
+           document.getElementById('conti').innerHTML=`<img src='https://i.gifer.com/2DJ6.gif' >`
+           document.getElementById('container').innerHTML='';
+           
+        }
+        // console.log(Array.from(lastData));
+        
+
+    }
+    catch(error){
+        console.log("Not found",error)
+    }
+
+ }  
+ function display(data){
+    let container=document.getElementById('container');
+    container.innerHTML='';
+    // console.log(data)
+    data.forEach(function(e){
+        // console.log(e)
+        let div=document.createElement('div');
+        let img=document.createElement('img');
+        img.src=e.Poster;
+        let h3=document.createElement('h3');
+        h3.innerText=e.Title
+        let type=document.createElement('p');
+        type.innerText=e.Type;
+        let year=document.createElement('p');
+        year.innerText=e.Year;
+        let imdb=document.createElement('p');
+        if(Number(e.imdbRating)>8.5){
+            let span=document.createElement('span');
+            span.innerText='Top Moive'
+            span.setAttribute('class','top')
+            // span.style.marginLeft='19px';
+            
+            imdb.innerText=e.imdbRating;
+            
+            imdb.append(span);
+            
+            imdb.style.color='green';
+        }
+        else{
+            imdb.innerText=e.imdbRating;
+        }
+
+        div.append(img,h3,type,year,imdb);
+        container.append(div);
+    })
+    
+ } 
+    document.getElementById('submit').addEventListener('click',function(){
+        event.preventDefault()
+        let form=document.getElementById('form');
+        let searchValue=form.search.value;
+        getMovie(searchValue);
+    })
+
+document.getElementById('year').onchange=function(){
+    let value=+document.getElementById('year').value;
+    lastDat=lastData.filter(function(a){
+        return Number(a.Year)>=value;
+    })
+    // console.log(value)
+    display(lastDat)
+    console.log(lastDat)
+}
+
+</script>
+</html>
